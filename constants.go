@@ -27,4 +27,8 @@ const RelationTypeHub = "hub"
 // See: https://w3id.org/fep/3b86/
 const RelationTypeFEP3b86Prefix = "https://w3id.org/fep/3b86/"
 
+// OpenID Connect Discovery defines a standard relation type for identifying the
+// OpenID Connect issuer for a given resource.
+const RelationTypeOpenIDIssuer = "http://openid.net/specs/connect/1.0/issuer"
+
 // Additional values to consider adding: http://microformats.org/wiki/existing-rel-values
