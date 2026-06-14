@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -12,9 +13,12 @@ func TestLookup(t *testing.T) {
 
 	// Spin up a WebFinger server that returns a fixed resource.
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		require.Equal(t, "/.well-known/webfinger", r.URL.Path)
+		// Use assert (not require) here: this handler runs in the server's
+		// goroutine, where require's FailNow would call runtime.Goexit.
+		assert.Equal(t, "/.well-known/webfinger", r.URL.Path)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"subject":"acct:sarah@sky.net","links":[{"rel":"self","type":"application/activity+json","href":"https://sky.net/users/sarah"}]}`))
+		_, err := w.Write([]byte(`{"subject":"acct:sarah@sky.net","links":[{"rel":"self","type":"application/activity+json","href":"https://sky.net/users/sarah"}]}`))
+		assert.NoError(t, err)
 	}))
 	t.Cleanup(server.Close)
 
