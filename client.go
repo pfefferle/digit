@@ -5,6 +5,9 @@ import (
 	"github.com/benpate/remote"
 )
 
+// Lookup resolves a WebFinger account (a URL, an email-style handle, or a
+// Fediverse address) into its Resource, querying each candidate endpoint until
+// one succeeds. It returns an error if no endpoint can be reached.
 func Lookup(url string, options ...remote.Option) (Resource, error) {
 
 	webFingerServerURLs := ParseAccount(url)

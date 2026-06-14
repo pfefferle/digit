@@ -21,13 +21,13 @@ func NewResource(subject string) Resource {
 	}
 }
 
-// Alias adds an alias (additional URI) to this Resource.  It returns a pointer to the Resource so that calls can be chained.
+// Alias adds an alias (additional URI) to this Resource.  It returns the updated Resource so that calls can be chained.
 func (resource Resource) Alias(URI string) Resource {
 	resource.Aliases = append(resource.Aliases, URI)
 	return resource
 }
 
-// Property adds a property to this Resource.  It returns a pointer to the Resource so that calls can be chained.
+// Property adds a property to this Resource.  It returns the updated Resource so that calls can be chained.
 func (resource Resource) Property(name string, value string) Resource {
 	// Copy the map so chained calls don't mutate the original Resource's data.
 	resource.Properties = maps.Clone(resource.Properties)
@@ -40,13 +40,13 @@ func (resource Resource) Property(name string, value string) Resource {
 	return resource
 }
 
-// Link adds a link to this Resource.  It returns a pointer to the Resource so that calls can be chained.
+// Link adds a link to this Resource.  It returns the updated Resource so that calls can be chained.
 func (resource Resource) Link(relationType string, mediaType string, href string) Resource {
 	resource.Links = append(resource.Links, NewLink(relationType, mediaType, href))
 	return resource
 }
 
-// AddLink adds a link to this Resource.  It returns a pointer to the Resource so that calls can be chained.
+// AddLink adds a link to this Resource.  It returns the updated Resource so that calls can be chained.
 func (resource Resource) AddLink(link Link) Resource {
 	resource.Links = append(resource.Links, link)
 	return resource

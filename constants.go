@@ -14,7 +14,7 @@ const RelationTypeProfile = "https://webfinger.net/rel/profile-page/"
 // See: http://ostatus.github.io/spec/OStatus%201.0%20Draft%202.html#anchor10
 const RelationTypeSubscribeRequest = "http://ostatus.org/schema/1.0/subscribe"
 
-// RelationTypeActivityJSON identifies documents confirming to the Activity Streams 2.0 format.
+// RelationTypeSelf identifies the canonical Activity Streams 2.0 representation of the resource.
 // See: https://www.w3.org/TR/activitystreams-core/#media-type
 const RelationTypeSelf = "self"
 
@@ -27,8 +27,8 @@ const RelationTypeHub = "hub"
 // See: https://w3id.org/fep/3b86/
 const RelationTypeFEP3b86Prefix = "https://w3id.org/fep/3b86/"
 
-// OpenID Connect Discovery defines a standard relation type for identifying the
-// OpenID Connect issuer for a given resource.
+// RelationTypeOpenIDIssuer identifies the OpenID Connect issuer for a given resource,
+// per the OpenID Connect Discovery specification.
 const RelationTypeOpenIDIssuer = "http://openid.net/specs/connect/1.0/issuer"
 
 // Additional values to consider adding: http://microformats.org/wiki/existing-rel-values

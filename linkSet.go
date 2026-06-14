@@ -1,7 +1,10 @@
 package digit
 
+// LinkSet is a collection of Links with helper methods for finding, applying,
+// and removing links by their "rel" and "type" properties.
 type LinkSet []Link
 
+// NewLinkSet returns an empty LinkSet with the given pre-allocated capacity.
 func NewLinkSet(capacity int) LinkSet {
 	return make(LinkSet, 0, capacity)
 }
