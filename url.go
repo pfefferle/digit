@@ -13,22 +13,12 @@ import (
 // Otherwise, only HTTPS endpoints are returned.
 func ParseAccount(account string) []string {
 
-	// If the account already has an HTTP prefix, then craft a WebFinger URL directly for that.
-	if strings.HasPrefix(account, "http://") {
+	// If the account already has a protocol prefix, then craft a WebFinger URL directly for that.
+	if strings.HasPrefix(account, "http://") || strings.HasPrefix(account, "https://") {
 		if webFingerURL := parseAccount_ResourceURL(account); webFingerURL != "" {
 			return []string{webFingerURL}
-		} else {
-			return make([]string, 0)
 		}
-	}
-
-	// If the account already has an HTTPS prefix, then craft a WebFinger URL directly for that.
-	if strings.HasPrefix(account, "https://") {
-		if webFingerURL := parseAccount_ResourceURL(account); webFingerURL != "" {
-			return []string{webFingerURL}
-		} else {
-			return make([]string, 0)
-		}
+		return make([]string, 0)
 	}
 
 	// Otherwise, try to parse it like an Fediverse Address / Email Address
