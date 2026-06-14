@@ -110,7 +110,90 @@ func TestParseURL_WeirdStuff5(t *testing.T) {
 
 }
 
+func TestParseAccount_EmptyHost(t *testing.T) {
+
+	// An "http://" prefix with no hostname cannot become a WebFinger URL.
+	require.Equal(t, 0, len(ParseAccount("http://")))
+
+	// Likewise for an "https://" prefix with no hostname.
+	require.Equal(t, 0, len(ParseAccount("https://")))
+}
+
+func TestParseAccount_AsHandle_EmptyUsername(t *testing.T) {
+
+	// A handle with an empty username (everything before the "@") is not a valid handle.
+	// The leading "@" is trimmed, leaving "@connor.com", which splits into an empty username.
+	require.Equal(t, 0, len(parseAccount_AsHandle("@@connor.com")))
+}
+
+func TestParseAccount_AsHandle_InvalidHostname(t *testing.T) {
+
+	// A handle whose hostname is empty/invalid is not a valid handle.
+	require.Equal(t, 0, len(parseAccount_AsHandle("john@")))
+}
+
+func TestParseAccount_ResourceURL(t *testing.T) {
+
+	// A valid URL produces a WebFinger lookup URL.
+	require.Equal(t,
+		"https://connor.com/.well-known/webfinger?resource=acct:https://connor.com/john",
+		parseAccount_ResourceURL("https://connor.com/john"),
+	)
+
+	// A URL with no hostname returns an empty string.
+	require.Equal(t, "", parseAccount_ResourceURL("https://"))
+
+	// A URL that cannot be parsed (control character) returns an empty string.
+	require.Equal(t, "", parseAccount_ResourceURL("https://example.com/\x7f"))
+}
+
 func TestIsValidhostName(t *testing.T) {
 	require.True(t, domain.IsValidHostname("localhost"))
 	require.True(t, domain.IsValidHostname("127.0.0.1"))
+}
+
+// FuzzParseAccount throws arbitrary account strings at the parser and verifies
+// that the invariants of its output always hold (and that it never panics).
+func FuzzParseAccount(f *testing.F) {
+
+	// Seed the corpus with the shapes exercised by the unit tests above.
+	seeds := []string{
+		"",
+		"@",
+		"@@",
+		"http://",
+		"https://",
+		"https://connor.com/john",
+		"https://connor.com/@john",
+		"john@connor.com",
+		"@sarah@sky.net",
+		"http://localhost/john",
+		"@sarah@localhost:3000",
+		"localhost/john",
+		"sky.net/sarah",
+		"https://@john",
+		"john+connor@connor.com",
+		"@first-group@127.0.0.1",
+	}
+
+	for _, seed := range seeds {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, account string) {
+
+		results := ParseAccount(account)
+
+		// ParseAccount returns at most two candidate URLs (https and http).
+		require.LessOrEqual(t, len(results), 2)
+
+		for _, result := range results {
+			// Every candidate must be a non-empty WebFinger endpoint.
+			require.NotEmpty(t, result)
+			require.Contains(t, result, "/.well-known/webfinger")
+		}
+
+		// The parser must be deterministic.
+		require.Equal(t, results, ParseAccount(account))
+	})
 }

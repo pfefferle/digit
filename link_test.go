@@ -80,6 +80,37 @@ func TestLinkProperties(t *testing.T) {
 	require.True(t, link.IsEmpty())
 }
 
+func TestLinkNotEmpty(t *testing.T) {
+
+	require.False(t, NewLink("", "", "").NotEmpty())
+	require.True(t, NewLink("example", "", "").NotEmpty())
+	require.True(t, NewLink("", "text/plain", "").NotEmpty())
+	require.True(t, NewLink("", "", "http://example.com").NotEmpty())
+}
+
+func TestLinkTemplate(t *testing.T) {
+
+	link := NewLink("example", "text/plain", "http://example.com")
+
+	// The "template" field round-trips through Get/Set.
+	require.True(t, link.SetString("template", "http://example.com?q={q}"))
+	require.Equal(t, "http://example.com?q={q}", link.Template)
+	require.Equal(t, "http://example.com?q={q}", link.GetString("template"))
+
+	value, ok := link.GetStringOK("template")
+	require.True(t, ok)
+	require.Equal(t, "http://example.com?q={q}", value)
+}
+
+func TestLinkGetStringOK_Unknown(t *testing.T) {
+
+	link := NewLink("example", "text/plain", "http://example.com")
+
+	value, ok := link.GetStringOK("unknown")
+	require.False(t, ok)
+	require.Equal(t, "", value)
+}
+
 func TestMatches(t *testing.T) {
 	require.True(t, NewLink("example", "text/plain", "http://example.com").Matches(NewLink("example", "text/plain", "http://new.example.com")))
 	require.False(t, NewLink("not-example", "text/plain", "http://example.com").Matches(NewLink("example", "text/plain", "http://new.example.com")))
@@ -137,6 +168,47 @@ func ExampleLink() {
 	// You can also set link titles in multiple languages
 	link = link.Title("en-us", "The Magical World of Steve")
 	link = link.Title("fr", "Le Mondo Magique de Steve")
+}
+
+// FuzzLinkUnmarshal feeds arbitrary bytes to the JSON decoder and, for any input
+// that decodes successfully, verifies that decode→encode→decode is idempotent.
+func FuzzLinkUnmarshal(f *testing.F) {
+
+	seeds := []string{
+		`{}`,
+		`{"rel":"self","type":"application/activity+json","href":"https://example.com"}`,
+		`{"href":"example.com","rel":"example","type":"text/plain","titles":{"und":"Example","es":"Ejemplo"}}`,
+		`{"rel":"example","properties":{"one":"ONE","two":"TWO"}}`,
+		`{"template":"example.com?one={one}","rel":"example","type":"text/plain"}`,
+		`not json`,
+	}
+
+	for _, seed := range seeds {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, data string) {
+
+		var first Link
+		if err := json.Unmarshal([]byte(data), &first); err != nil {
+			return // Ignore inputs that are not valid Link JSON.
+		}
+
+		// Encode the decoded Link, then decode and re-encode it. The encoded
+		// form must be stable. (We compare the encoded bytes rather than the
+		// structs because "omitempty" makes an empty map indistinguishable from
+		// a nil map after one round-trip.)
+		encoded, err := json.Marshal(first)
+		require.Nil(t, err)
+
+		var second Link
+		require.Nil(t, json.Unmarshal(encoded, &second))
+
+		reEncoded, err := json.Marshal(second)
+		require.Nil(t, err)
+
+		require.Equal(t, string(encoded), string(reEncoded))
+	})
 }
 
 func TestCreateLinkWithSubscribeRequest(t *testing.T) {

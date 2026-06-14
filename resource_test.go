@@ -1,6 +1,7 @@
 package digit
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -90,6 +91,47 @@ func TestResource_FilterLinks_NonMatching(t *testing.T) {
 	// FilterLinks with non-matching value returns an empty list
 	resource.FilterLinks("Non-Matching-Value")
 	require.Equal(t, 0, len(resource.Links))
+}
+
+// FuzzResourceUnmarshal feeds arbitrary bytes to the JSON decoder and, for any
+// input that decodes successfully, verifies decode→encode→decode is idempotent.
+func FuzzResourceUnmarshal(f *testing.F) {
+
+	seeds := []string{
+		`{}`,
+		`{"subject":"acct:sarah@sky.net"}`,
+		`{"subject":"acct:sarah@sky.net","aliases":["http://sky.net/sarah"]}`,
+		`{"subject":"acct:sarah@sky.net","properties":{"role":"employee"}}`,
+		`{"subject":"acct:sarah@sky.net","links":[{"rel":"self","type":"application/activity+json","href":"https://sky.net/users/sarah"}]}`,
+		`not json`,
+	}
+
+	for _, seed := range seeds {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, data string) {
+
+		var first Resource
+		if err := json.Unmarshal([]byte(data), &first); err != nil {
+			return // Ignore inputs that are not valid Resource JSON.
+		}
+
+		// Encode the decoded Resource, then decode and re-encode it. The encoded
+		// form must be stable. (We compare the encoded bytes rather than the
+		// structs because "omitempty" makes an empty slice/map indistinguishable
+		// from a nil one after one round-trip.)
+		encoded, err := json.Marshal(first)
+		require.Nil(t, err)
+
+		var second Resource
+		require.Nil(t, json.Unmarshal(encoded, &second))
+
+		reEncoded, err := json.Marshal(second)
+		require.Nil(t, err)
+
+		require.Equal(t, string(encoded), string(reEncoded))
+	})
 }
 
 func ExampleResource() {
