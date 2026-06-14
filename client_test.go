@@ -42,7 +42,7 @@ func TestLookup_NoWebFingerURLs(t *testing.T) {
 func TestLookup_ServerError(t *testing.T) {
 
 	// A server that returns an error status causes the lookup to fail.
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	t.Cleanup(server.Close)
