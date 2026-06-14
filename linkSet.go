@@ -39,8 +39,10 @@ func (set *LinkSet) Apply(link Link) {
 // Remove removes all items from the set that match the given link (having identical "rel"
 // and "type" properties)
 func (set *LinkSet) Remove(link Link) {
-	for index, target := range *set {
-		if link.Matches(target) {
+	// Iterate backwards so that removing an item does not shift the indexes
+	// of the items we have not yet inspected.
+	for index := len(*set) - 1; index >= 0; index-- {
+		if link.Matches((*set)[index]) {
 			*set = append((*set)[:index], (*set)[index+1:]...)
 		}
 	}

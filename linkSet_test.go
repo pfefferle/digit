@@ -11,6 +11,24 @@ func TestLinkSetCreate(t *testing.T) {
 	require.Equal(t, 0, len(set))
 }
 
+func TestLinkSetRemove_MultipleMatches(t *testing.T) {
+
+	set := NewLinkSet(0)
+	set.Append(
+		NewLink("friend", "text/html", "http://example.com/a"),
+		NewLink("parent", "application/json", "http://example.com/parent"),
+		NewLink("friend", "text/html", "http://example.com/b"),
+		NewLink("friend", "text/html", "http://example.com/c"),
+	)
+
+	// Remove must delete every matching link (matching on "rel" and "type")
+	// without panicking, leaving only the non-matching entries behind.
+	set.Remove(NewLink("friend", "text/html", ""))
+
+	require.Equal(t, 1, len(set))
+	require.Equal(t, "parent", set[0].RelationType)
+}
+
 func TestLinkSetAppend(t *testing.T) {
 
 	set := NewLinkSet(0)
