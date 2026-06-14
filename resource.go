@@ -62,7 +62,8 @@ func (resource Resource) FindLink(relationType string) Link {
 		}
 	}
 
-	return NewLink(relationType, "", "")
+	// Return a fully-empty link so that callers can detect a miss via IsEmpty().
+	return NewLink("", "", "")
 }
 
 // FilterLinks updates the resource to only include links that match the provided relationType.

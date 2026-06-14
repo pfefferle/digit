@@ -76,8 +76,12 @@ func TestFindLink(t *testing.T) {
 	require.Equal(t, "https://sara.sky.net/activity.json", activity.Href)
 
 	missing := resource.FindLink("missing-type")
+	require.Equal(t, "", missing.RelationType)
 	require.Equal(t, "", missing.MediaType)
 	require.Equal(t, "", missing.Href)
+
+	// A miss must be detectable via IsEmpty(), consistent with LinkSet.Find.
+	require.True(t, missing.IsEmpty())
 }
 
 func TestResource_FilterLinks(t *testing.T) {
