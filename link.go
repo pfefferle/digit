@@ -1,6 +1,7 @@
 package digit
 
 import (
+	"maps"
 	"strings"
 
 	"github.com/benpate/rosetta/mapof"
@@ -54,9 +55,16 @@ func (link Link) Title(title string, language string) Link {
 		return link
 	}
 
+	// Copy the map so chained calls don't mutate the original Link's data.
+	link.Titles = maps.Clone(link.Titles)
+
 	if title == "" {
 		delete(link.Titles, language)
 		return link
+	}
+
+	if link.Titles == nil {
+		link.Titles = mapof.NewString()
 	}
 
 	link.Titles[language] = title
@@ -70,9 +78,16 @@ func (link Link) Property(name string, value string) Link {
 		return link
 	}
 
+	// Copy the map so chained calls don't mutate the original Link's data.
+	link.Properties = maps.Clone(link.Properties)
+
 	if value == "" {
 		delete(link.Properties, name)
 		return link
+	}
+
+	if link.Properties == nil {
+		link.Properties = mapof.NewString()
 	}
 
 	link.Properties[name] = value

@@ -80,6 +80,44 @@ func TestLinkProperties(t *testing.T) {
 	require.True(t, link.IsEmpty())
 }
 
+func TestLinkTitleNoAliasing(t *testing.T) {
+
+	base := NewLink("x", "text/plain", "http://example.com").Title("Hello", "en")
+
+	// Deriving a new Link must not mutate the original's Titles map.
+	derived := base.Title("Bonjour", "fr")
+
+	require.Equal(t, 1, len(base.Titles))
+	_, ok := base.Titles["fr"]
+	require.False(t, ok)
+	require.Equal(t, 2, len(derived.Titles))
+	require.Equal(t, "Bonjour", derived.Titles["fr"])
+}
+
+func TestLinkPropertyNoAliasing(t *testing.T) {
+
+	base := NewLink("x", "text/plain", "http://example.com").Property("a", "1")
+
+	// Deriving a new Link must not mutate the original's Properties map.
+	derived := base.Property("b", "2")
+
+	require.Equal(t, 1, len(base.Properties))
+	_, ok := base.Properties["b"]
+	require.False(t, ok)
+	require.Equal(t, 2, len(derived.Properties))
+	require.Equal(t, "2", derived.Properties["b"])
+}
+
+func TestLinkBuilderOnZeroValue(t *testing.T) {
+
+	// Title and Property must initialize their maps when called on a zero-value
+	// Link (one not created via NewLink, whose maps are nil).
+	link := Link{}.Title("Hello", "en").Property("a", "1")
+
+	require.Equal(t, "Hello", link.Titles["en"])
+	require.Equal(t, "1", link.Properties["a"])
+}
+
 func TestLinkNotEmpty(t *testing.T) {
 
 	require.False(t, NewLink("", "", "").NotEmpty())

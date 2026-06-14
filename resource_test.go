@@ -34,6 +34,28 @@ func TestResource(t *testing.T) {
 
 }
 
+func TestResourcePropertyNoAliasing(t *testing.T) {
+
+	base := NewResource("acct:x").Property("a", "1")
+
+	// Deriving a new Resource must not mutate the original's Properties map.
+	derived := base.Property("b", "2")
+
+	require.Equal(t, 1, len(base.Properties))
+	_, ok := base.Properties["b"]
+	require.False(t, ok)
+	require.Equal(t, 2, len(derived.Properties))
+	require.Equal(t, "2", derived.Properties["b"])
+}
+
+func TestResourcePropertyOnZeroValue(t *testing.T) {
+
+	// Property must initialize the map when called on a zero-value Resource
+	// (one not created via NewResource, whose Properties map is nil).
+	resource := Resource{}.Property("a", "1")
+	require.Equal(t, "1", resource.Properties["a"])
+}
+
 func TestFindLink(t *testing.T) {
 
 	resource := NewResource("acct:sarah@sky.net").

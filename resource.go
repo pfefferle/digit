@@ -1,5 +1,7 @@
 package digit
 
+import "maps"
+
 // Resource defines a single resource (such as a user or web page) that is being queried using the WebFinger protocol
 // https://datatracker.ietf.org/doc/html/rfc7033#section-4.4
 type Resource struct {
@@ -27,6 +29,13 @@ func (resource Resource) Alias(URI string) Resource {
 
 // Property adds a property to this Resource.  It returns a pointer to the Resource so that calls can be chained.
 func (resource Resource) Property(name string, value string) Resource {
+	// Copy the map so chained calls don't mutate the original Resource's data.
+	resource.Properties = maps.Clone(resource.Properties)
+
+	if resource.Properties == nil {
+		resource.Properties = make(map[string]string)
+	}
+
 	resource.Properties[name] = value
 	return resource
 }
