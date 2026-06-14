@@ -80,8 +80,11 @@ func parseAccount_AsHandle(account string) []string {
 		return make([]string, 0)
 	}
 
-	// Return the URL *without* the protocol (which will be handled later)
-	urlWithoutProtocol := hostname + "/.well-known/webfinger?resource=acct:" + account
+	// Return the URL *without* the protocol (which will be handled later).
+	// The resource value is percent-encoded so that special characters in the
+	// account (such as "+" or ":") survive transport to the WebFinger server.
+	query := url.Values{"resource": {"acct:" + account}}.Encode()
+	urlWithoutProtocol := hostname + "/.well-known/webfinger?" + query
 
 	// Always try the HTTPS version first
 	result := []string{"https://" + urlWithoutProtocol}
@@ -109,7 +112,7 @@ func parseAccount_ResourceURL(resource string) string {
 	}
 
 	urlValue.Path = ".well-known/webfinger"
-	urlValue.RawQuery = "resource=acct:" + resource
+	urlValue.RawQuery = url.Values{"resource": {"acct:" + resource}}.Encode()
 
 	return urlValue.String()
 }
